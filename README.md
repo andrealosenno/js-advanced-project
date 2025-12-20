@@ -23,16 +23,9 @@ Owly Library è una web application moderna e reattiva che permette agli utenti 
     *   `async/await` e `Fetch API` per le richieste di rete.
     *   `localStorage` per la persistenza delle preferenze utente.
 
-## 🚀 Installazione e Utilizzo
+## 🚀 Utilizzo
 
-Poiché il progetto è realizzato con tecnologie web standard senza dipendenze di build (come Webpack o Node.js), è molto semplice da avviare:
-
-1.  **Clona il repository**:
-    ```bash
-    git clone https://github.com/tuo-username/owly-library.git
-    ```
-2.  **Apri il progetto**:
-    Naviga nella cartella del progetto e apri il file `index.html` con il tuo browser preferito.
+Per utilizzare l'app visita il sito https://andrealosenno.github.io/js-advanced-project/
 
 ## 🔌 API Reference
 
@@ -40,10 +33,3 @@ Questo progetto utilizza l'API gratuita di Open Library.
 
 *   Endpoint Soggetti: `https://openlibrary.org/subjects/{subject}.json`
 *   Endpoint Dettagli: `https://openlibrary.org{key}.json`
-
-## 📄 Licenza
-
-Distribuito sotto la licenza MIT.
-
----
-Realizzato con ❤️ per il corso JS Advanced.
