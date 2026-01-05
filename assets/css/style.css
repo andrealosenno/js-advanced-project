@@ -14,6 +14,10 @@
     --primary-color: #ce93d8;
 }
 
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
@@ -139,6 +143,12 @@ h1 span { color: var(--primary-color); transition: color 0.4s ease; }
     background: var(--card-bg);
     padding: 10px 20px;
     transition: box-shadow 0.2s, background-color 0.4s ease;
+}
+
+/* Accessibilità: Focus visibile */
+.search-box:focus-within {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 .search-box:hover, .search-box:focus-within {
