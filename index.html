@@ -25,8 +25,8 @@
     <div class="search-container">
         <h1>Owly<span>Library</span></h1>
         <div class="search-box">
-            <input type="text" id="category-input" placeholder="Cerca una categoria (es. love, science)..." onkeydown="if(event.key === 'Enter') searchBooks()">
-            <button id="search-btn" onclick="searchBooks()">CERCA</button>
+            <input type="text" id="category-input" placeholder="Cerca una categoria (es. love, science)...">
+            <button id="search-btn">CERCA</button>
         </div>
         <div class="loader" id="loader">Caricamento in corso...</div>
     </div>
@@ -34,12 +34,12 @@
     <div id="results-area"></div>
 
     <div class="pagination-container">
-        <button id="load-more-btn" onclick="loadMoreBooks()" style="display: none;">Carica altri risultati</button>
+        <button id="load-more-btn" style="display: none;">Carica altri risultati</button>
     </div>
 
     <div id="desc-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <span class="close-btn">&times;</span>
             <h2 id="modal-title">Titolo Libro</h2>
             <div id="modal-body"></div>
         </div>
