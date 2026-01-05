@@ -1,3 +1,5 @@
+'use strict';
+
 const SUBJECT_API = "https://openlibrary.org/subjects/";
 const BASE_URL = "https://openlibrary.org";
 
@@ -5,38 +7,70 @@ let currentCategory = "";
 let offset = 0;
 const LIMIT = 50;
 
+const elements = {
+    themeToggle: document.getElementById('theme-toggle'),
+    searchInput: document.getElementById('category-input'),
+    searchBtn: document.getElementById('search-btn'),
+    resultsArea: document.getElementById('results-area'),
+    loader: document.getElementById('loader'),
+    loadMoreBtn: document.getElementById('load-more-btn'),
+    modal: document.getElementById('desc-modal'),
+    modalTitle: document.getElementById('modal-title'),
+    modalBody: document.getElementById('modal-body'),
+    closeBtn: document.querySelector('.close-btn')
+};
+
 document.addEventListener('DOMContentLoaded', function() {
-    const themeToggle = document.getElementById('theme-toggle');
     const savedTheme = localStorage.getItem('theme');
 
     if (savedTheme === 'dark') {
-        document.body.setAttribute('data-theme', 'dark');
-        if (themeToggle) themeToggle.checked = true;
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (elements.themeToggle) elements.themeToggle.checked = true;
     }
 
-    if (themeToggle) {
-        themeToggle.addEventListener('change', function() {
-            const body = document.body;
+    if (elements.themeToggle) {
+        elements.themeToggle.addEventListener('change', function() {
             if (this.checked) {
-                body.setAttribute('data-theme', 'dark');
+                document.documentElement.setAttribute('data-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
             } else {
-                body.removeAttribute('data-theme');
+                document.documentElement.removeAttribute('data-theme');
                 localStorage.setItem('theme', 'light');
             }
         });
     }
-});
 
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('desc-modal');
-    if (event.target == modal) {
-        modal.style.display = "none";
+    if (elements.searchBtn) elements.searchBtn.addEventListener('click', searchBooks);
+    
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchBooks();
+        });
     }
+
+    if (elements.loadMoreBtn) elements.loadMoreBtn.addEventListener('click', loadMoreBooks);
+    
+    if (elements.closeBtn) elements.closeBtn.addEventListener('click', closeModal);
+
+    if (elements.resultsArea) {
+        elements.resultsArea.addEventListener('click', (e) => {
+            if (e.target.classList.contains('details-btn')) {
+                const key = e.target.dataset.key;
+                const title = e.target.dataset.title;
+                getBookDetails(key, title);
+            }
+        });
+    }
+
+    window.addEventListener('click', function(event) {
+        if (event.target == elements.modal) {
+            closeModal();
+        }
+    });
 });
 
 async function searchBooks() {
-    const input = document.getElementById('category-input').value.trim().toLowerCase();
+    const input = elements.searchInput.value.trim().toLowerCase();
     
     if (!input) {
         alert("Inserisci una categoria!");
@@ -46,8 +80,8 @@ async function searchBooks() {
     currentCategory = input;
     offset = 0; 
     
-    document.getElementById('results-area').innerHTML = '';
-    document.getElementById('load-more-btn').style.display = 'none';
+    elements.resultsArea.innerHTML = '';
+    elements.loadMoreBtn.style.display = 'none';
 
     await fetchBooks();
 }
@@ -58,24 +92,24 @@ async function loadMoreBooks() {
 }
 
 async function fetchBooks() {
-    const resultsArea = document.getElementById('results-area');
-    const loader = document.getElementById('loader');
-    const loadMoreBtn = document.getElementById('load-more-btn');
-
-    loader.style.display = 'block';
-    loadMoreBtn.style.display = 'none';
+    elements.loader.style.display = 'block';
+    elements.loadMoreBtn.style.display = 'none';
 
     try {
-        const response = await fetch(`${SUBJECT_API}${currentCategory}.json?limit=${LIMIT}&offset=${offset}`);
+        const url = new URL(`${SUBJECT_API}${currentCategory}.json`);
+        url.searchParams.append('limit', LIMIT);
+        url.searchParams.append('offset', offset);
+
+        const response = await fetch(url);
         
         if (!response.ok) throw new Error("Errore API");
 
         const data = await response.json();
-        loader.style.display = 'none';
+        elements.loader.style.display = 'none';
 
         if (data.work_count === 0 || data.works.length === 0) {
             if (offset === 0) {
-                resultsArea.innerHTML = '<p style="text-align:center; width:100%;">Nessun libro trovato.</p>';
+                elements.resultsArea.innerHTML = '<p style="text-align:center; width:100%;">Nessun libro trovato.</p>';
             } else {
                 alert("Non ci sono altri risultati da mostrare.");
             }
@@ -85,16 +119,14 @@ async function fetchBooks() {
         displayBooks(data.works);
 
         if (data.works.length === LIMIT) {
-            loadMoreBtn.style.display = 'inline-block';
-        } else {
-            loadMoreBtn.style.display = 'none';
+            elements.loadMoreBtn.style.display = 'inline-block';
         }
 
     } catch (error) {
         console.error(error);
-        loader.style.display = 'none';
+        elements.loader.style.display = 'none';
         if (offset === 0) {
-            resultsArea.innerHTML = '<p style="text-align:center;">Errore nella ricerca.</p>';
+            elements.resultsArea.innerHTML = '<p style="text-align:center;">Errore nella ricerca.</p>';
         } else {
             alert("Errore nel caricamento degli altri libri.");
         }
@@ -102,7 +134,7 @@ async function fetchBooks() {
 }
 
 function displayBooks(books) {
-    const resultsArea = document.getElementById('results-area');
+    const fragment = document.createDocumentFragment();
 
     books.forEach(book => {
         const title = book.title;
@@ -114,31 +146,37 @@ function displayBooks(books) {
         const card = document.createElement('div');
         card.className = 'book-card';
 
-        card.innerHTML = `
-            <div>
-                <div class="book-title">${title}</div>
-                <div class="book-authors">di ${authors}</div>
-            </div>
-        `;
+        const infoDiv = document.createElement('div');
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'book-title';
+        titleDiv.textContent = title;
+
+        const authorDiv = document.createElement('div');
+        authorDiv.className = 'book-authors';
+        authorDiv.textContent = `di ${authors}`;
+
+        infoDiv.appendChild(titleDiv);
+        infoDiv.appendChild(authorDiv);
 
         const btn = document.createElement('button');
         btn.className = 'details-btn';
         btn.textContent = 'Leggi Descrizione';
-        btn.onclick = () => getBookDetails(key, title);
+        btn.dataset.key = key;
+        btn.dataset.title = title;
 
+        card.appendChild(infoDiv);
         card.appendChild(btn);
-        resultsArea.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    elements.resultsArea.appendChild(fragment);
 }
 
 async function getBookDetails(key, title) {
-    const modal = document.getElementById('desc-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-
-    modal.style.display = 'flex';
-    modalTitle.innerText = title;
-    modalBody.innerHTML = '<i>Caricamento dettagli...</i>';
+    elements.modal.style.display = 'flex';
+    elements.modalTitle.textContent = title;
+    elements.modalBody.innerHTML = '<i>Caricamento dettagli...</i>';
 
     try {
         const response = await fetch(`${BASE_URL}${key}.json`);
@@ -152,12 +190,17 @@ async function getBookDetails(key, title) {
                 descriptionText = data.description.value;
             }
         }
-        modalBody.innerHTML = `<p>${descriptionText}</p>`;
+        
+        elements.modalBody.innerHTML = '';
+        const p = document.createElement('p');
+        p.textContent = descriptionText;
+        elements.modalBody.appendChild(p);
+
     } catch (error) {
-        modalBody.innerHTML = '<p style="color:red">Errore nel recupero dettagli.</p>';
+        elements.modalBody.innerHTML = '<p style="color:red">Errore nel recupero dettagli.</p>';
     }
 }
 
 function closeModal() {
-    document.getElementById('desc-modal').style.display = 'none';
+    elements.modal.style.display = 'none';
 }
